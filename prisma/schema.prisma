@@ -1,0 +1,129 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client"
+
+  runtime                = "workerd"
+  moduleFormat           = "esm"
+  generatedFileExtension = "ts"
+  importFileExtension    = "ts"
+
+  output          = "../generated/prisma"
+  previewFeatures = ["queryCompiler", "driverAdapters"]
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  USER
+  CREATOR
+  ADMIN
+}
+
+enum CourseLevel {
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+}
+
+enum VideoType {
+  UPLOADED
+  YOUTUBE
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  username  String   @unique
+  name      String?
+  avatar    String?
+  description String?
+  password  String
+  role      UserRole @default(USER)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+  courses   Course[]
+  progress  Progress[]
+  lessons   Lesson[]
+}
+
+model Course {
+  id          String     @id @default(uuid())
+  title       String
+  description String
+  overview    String? @default("")
+  level       CourseLevel? @default(BEGINNER)
+  status      String     @default("draft")
+  slug        String     @unique
+  thumbnailUrl String?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  creatorId   String
+  creator     User       @relation(fields: [creatorId], references: [id])
+  modules     Module[]
+  progress    Progress[]
+}
+
+model Module {
+  id        String    @id @default(uuid())
+  title     String
+  order     Int
+  status    String    @default("draft")
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  courseId  String
+  course    Course    @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  lessons   Lesson[]
+}
+
+model Lesson {
+  id          String         @id @default(uuid())
+  title       String
+  description String
+  order       Int
+  duration    Int
+  status      String         @default("draft")
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+  moduleId    String
+  module      Module         @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  instructorId String?
+  instructor  User?         @relation(fields: [instructorId], references: [id])
+  content     LessonContent?
+  progress    Progress[]
+}
+
+model LessonContent {
+  id        String   @id @default(uuid())
+  type      String
+  content   String
+  videoType VideoType?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  lessonId  String   @unique
+  lesson    Lesson   @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+}
+
+model Progress {
+  id        String   @id @default(uuid())
+  status    String   @default("not_started")
+  startedAt DateTime?
+  completedAt DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  courseId  String
+  course    Course   @relation(fields: [courseId], references: [id])
+  lessonId  String
+  lesson    Lesson   @relation(fields: [lessonId], references: [id])
+
+  @@unique([userId, lessonId])
+}
