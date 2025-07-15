@@ -6,15 +6,20 @@ import { minutesToISO8601Duration } from '@/app/lib/courseCalcs';
 interface PageProps {
   params: { id: string };
   ctx: any;
+  request: Request;
 }
 
-export default async function LessonPage({ params, ctx }: PageProps) {
+export default async function LessonPage({ params, ctx, request }: PageProps) {
   try {
     const { course, lastLessonId, completedLessons } = await getCourseWithProgress(params.id, ctx.user?.id);
 
     if (!course) {
       return <div>Course not found</div>;
     }
+
+    // Get the lesson parameter from URL
+    const url = new URL(request.url);
+    const lessonParam = url.searchParams.get('lesson');
 
     const structuredData = {
       "@context": "https://schema.org",
@@ -54,6 +59,19 @@ export default async function LessonPage({ params, ctx }: PageProps) {
         />
         <div className="min-h-screen bg-white">
           <div className="max-w-7xl mx-auto px-0 sm:px-4 lg:px-6">
+            {/* Back to Course Link */}
+            <div className="p-4 sm:p-6 border-b border-gray-200">
+              <a
+                href={`/courses/${course.id}`}
+                className="inline-flex items-center text-sm text-indigo-600 hover:text-indigo-800 transition-colors duration-200"
+              >
+                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
+                Back to Course Overview
+              </a>
+            </div>
+            
             <LessonContent
               modules={course.modules}
               lastLessonId={lastLessonId}
@@ -61,6 +79,7 @@ export default async function LessonPage({ params, ctx }: PageProps) {
               userId={ctx.user?.id}
               completedLessons={completedLessons}
               creator={course.creator}
+              initialLessonId={lessonParam}
             />
           </div>
         </div>

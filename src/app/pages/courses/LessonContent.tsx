@@ -16,15 +16,25 @@ interface LessonContentProps {
     name: string | null;
     avatar: string | null;
   };
+  initialLessonId?: string | null;
 }
 
-export function LessonContent({ modules, lastLessonId, courseId, userId, completedLessons, creator }: LessonContentProps) {
+export function LessonContent({ modules, lastLessonId, courseId, userId, completedLessons, creator, initialLessonId }: LessonContentProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [watchedLessons, setWatchedLessons] = useState<Set<string>>(new Set(completedLessons));
   const [showSidebar, setShowSidebar] = useState(false);
 
   // Get the lesson ID after the last completed lesson
   const getInitialLessonId = () => {
+    // If initialLessonId is provided, use it
+    if (initialLessonId) {
+      const allLessons = modules.flatMap(module => module.lessons);
+      const lessonExists = allLessons.find(lesson => lesson.id === initialLessonId);
+      if (lessonExists) {
+        return initialLessonId;
+      }
+    }
+    
     if (!lastLessonId) return modules[0]?.lessons[0]?.id || null;
     
     // Find the next lesson after the last completed one

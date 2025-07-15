@@ -40,10 +40,14 @@ interface Course {
   };
 }
 
-export async function CoursePage({ ctx, params }: RequestInfo) {
+export async function CoursePage({ ctx, params, request }: RequestInfo) {
   try {
     const courseData = await getCourse(params.id);
     const course = courseData as unknown as Course;
+
+    // Get the current lesson from URL parameters if we're on the lessons page
+    const url = new URL(request.url);
+    const currentLessonId = url.searchParams.get('lesson');
 
     const structuredData = {
       "@context": "https://schema.org",
@@ -76,12 +80,7 @@ export async function CoursePage({ ctx, params }: RequestInfo) {
     }
     
     return (
-      <MainLayout
-        title={course.title}
-        description={course.description}
-        image={course.thumbnailUrl}
-        url={`https://learn.rwsdk.com/courses/${course.id}`}
-      >   
+      <MainLayout ctx={ctx}>
     <div className="min-h-screen bg-gray-50">
       <script
         type="application/ld+json"
@@ -164,13 +163,24 @@ export async function CoursePage({ ctx, params }: RequestInfo) {
                   <div className="border-b border-gray-200 pb-6" key={module.id}>
                     <h3 className="text-lg font-semibold text-gray-900 mb-3">{module.title}</h3>
                     <div className="space-y-3">
-                      {module.lessons.map((lesson, lessonIndex) => (
-                        <div className="flex items-center text-gray-600" key={lesson.id}>
-                          <span className="w-6">{index + 1}.{lessonIndex + 1} </span>
-                          <span>{lesson.title}</span>
-                          <span className="ml-auto text-sm">{Math.max(1, Math.round(lesson.duration / 60))} min</span>
-                        </div>
-                      ))}
+                      {module.lessons.map((lesson, lessonIndex) => {
+                        const isActive = currentLessonId === lesson.id;
+                        return (
+                          <a
+                            href={`/courses/${course.id}/lessons?lesson=${lesson.id}`}
+                            key={lesson.id}
+                            className={`flex items-center p-2 rounded-md transition-colors duration-200 ${
+                              isActive 
+                                ? 'bg-indigo-100 text-indigo-700 border-l-4 border-indigo-500' 
+                                : 'text-gray-600 hover:text-indigo-600 hover:bg-gray-50'
+                            }`}
+                          >
+                            <span className="w-6">{index + 1}.{lessonIndex + 1} </span>
+                            <span className="flex-1">{lesson.title}</span>
+                            <span className="ml-auto text-sm">{Math.max(1, Math.round(lesson.duration / 60))} min</span>
+                          </a>
+                        );
+                      })}
                     </div>
                   </div>
                 ))}
