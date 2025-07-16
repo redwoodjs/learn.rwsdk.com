@@ -1,23 +1,6 @@
 import styles from "./styles.css?url";
 const canonicalUrl = "https://rwsdk.com";
 
-declare global {
-  interface Window {
-    dataLayer: any[];
-    gtag: (...args: any[]) => void;
-  }
-}
-const GA_ID = "G-QR9LZVPZ86";
-const GTM_ID = "GTM-FVTZFB44";
-
-const gaScript = `
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-  gtag('config', '${GA_ID}');
-`;
-
-
 
 export const Document: React.FC<{ children: React.ReactNode, rw?: { nonce: string } }> = ({
   children,
@@ -69,11 +52,12 @@ export const Document: React.FC<{ children: React.ReactNode, rw?: { nonce: strin
                 <meta name="sitemap" content="/sitemap.xml" />
         <meta name="author" content="RedwoodJS" />
       <link rel="stylesheet" href={styles} />
-        <script dangerouslySetInnerHTML={{ __html: gaScript }} nonce={nonce} />
     </head>
     <body>
       <div id="root">{children}</div>
       <script nonce={nonce}>import("/src/client.tsx")</script>
+      <script async src="https://scripts.simpleanalyticscdn.com/latest.js"></script>
+      <noscript><img src="https://queue.simpleanalyticscdn.com/noscript.gif" alt="" referrerPolicy="no-referrer-when-downgrade"/></noscript>
     </body>
   </html>
   );

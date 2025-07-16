@@ -3,12 +3,12 @@ import { IS_DEV } from "rwsdk/constants";
 
 const getCSP = (nonce: string) => [
   "default-src 'self'", 
-  `script-src 'self' 'nonce-${nonce}' https://challenges.cloudflare.com https://www.google-analytics.com https://www.googletagmanager.com`,
+  `script-src 'self' 'nonce-${nonce}' https://challenges.cloudflare.com https://scripts.simpleanalyticscdn.com`,
   "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
   "frame-src https://challenges.cloudflare.com https://tagmanager.google.com https://ghbtns.com https://www.youtube.com https://youtube.com https://www.youtube.com/",
+  "img-src 'self' https://scripts.simpleanalyticscdn.com data:",
+  "connect-src 'self' https://scripts.simpleanalyticscdn.com",
   "object-src 'none'",
-  "connect-src 'self' https://www.google-analytics.com https://www.googletagmanager.com",
-  "img-src 'self' https://www.google-analytics.com https://www.googletagmanager.com data: https:",
 ]
 
 export const setCommonHeaders =
